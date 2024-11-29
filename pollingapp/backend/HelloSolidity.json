@@ -1,0 +1,39 @@
+{
+  "contract": {
+    "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "signerAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "abi": [
+      {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "inputs": [],
+        "name": "getMessage",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "string",
+            "name": "_msg",
+            "type": "string"
+          }
+        ],
+        "name": "setMessage",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ]
+  }
+}
