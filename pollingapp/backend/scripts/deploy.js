@@ -2,11 +2,15 @@ const { ethers } = require("hardhat");
 const fs = require("fs/promises");
 
 async function main() {
-  const helloContract = await ethers.deployContract("HelloSolidity");
+  const helloContract = await ethers.deployContract("SingleElectionVoting");
 
-  const artifact = await hre.artifacts.readArtifact("HelloSolidity");
+  const artifact = await hre.artifacts.readArtifact("SingleElectionVoting");
 
-  await writeDeploymentInfo(helloContract, artifact, "HelloSolidity.json");
+  await writeDeploymentInfo(
+    helloContract,
+    artifact,
+    "SingleElectionVoting.json"
+  );
 }
 
 async function writeDeploymentInfo(contract, artifact, filename = "") {
