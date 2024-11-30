@@ -8,52 +8,6 @@ const abi = [
     type: "constructor",
   },
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_candidateAddress",
-        type: "address",
-      },
-      {
-        internalType: "string",
-        name: "_name",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "_party",
-        type: "string",
-      },
-    ],
-    name: "addCandidate",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_voterAddress",
-        type: "address",
-      },
-      {
-        internalType: "string",
-        name: "_name",
-        type: "string",
-      },
-      {
-        internalType: "uint256",
-        name: "_age",
-        type: "uint256",
-      },
-    ],
-    name: "addVoter",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "admin",
     outputs: [
@@ -124,87 +78,15 @@ const abi = [
   },
   {
     inputs: [],
-    name: "endElection",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getCandidates",
+    name: "getElectionName",
     outputs: [
       {
-        components: [
-          {
-            internalType: "address",
-            name: "candidateAddress",
-            type: "address",
-          },
-          {
-            internalType: "string",
-            name: "name",
-            type: "string",
-          },
-          {
-            internalType: "string",
-            name: "party",
-            type: "string",
-          },
-          {
-            internalType: "uint256",
-            name: "voteCount",
-            type: "uint256",
-          },
-        ],
-        internalType: "struct SingleElectionVoting.Candidate[]",
+        internalType: "string",
         name: "",
-        type: "tuple[]",
+        type: "string",
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getWinner",
-    outputs: [
-      {
-        internalType: "string",
-        name: "name",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "party",
-        type: "string",
-      },
-      {
-        internalType: "uint256",
-        name: "voteCount",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "startElection",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_candidateAddress",
-        type: "address",
-      },
-    ],
-    name: "vote",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
 ];
@@ -263,10 +145,22 @@ export const getContractReadOnly = async () => {
 export const createElection = async (name, startDate, endDate) => {
   try {
     const contract = await getContract();
+    const provider = contract.provider; // Get the provider from the contract instance
+    const signer = await getSigner(); // Get the signer (wallet)
+    //const walletAddress = await signer.getAddress();
+    //const nonce = 2; //await provider.getTransactionCount(walletAddress);
+
+    const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
+    const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);
+
     const tx = await contract.createElection(
       name,
-      Math.floor(new Date(startDate).getTime() / 1000), // Convert to timestamp
-      Math.floor(new Date(endDate).getTime() / 1000)
+      startTimestamp,
+      endTimestamp,
+      {
+        gasLimit: 1000000, // Optional: Set gas limit
+        //nonce, // Explicitly set the nonce
+      }
     );
     console.log("Transaction sent:", tx.hash);
     await tx.wait();
