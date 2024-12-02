@@ -5,7 +5,7 @@ const VotingPanel = () => {
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState("");
 
-  /*useEffect(() => {
+  useEffect(() => {
     const fetchCandidates = async () => {
       try {
         const candidatesList = await getCandidates();
@@ -17,7 +17,7 @@ const VotingPanel = () => {
     };
 
     fetchCandidates();
-  }, []);*/
+  }, []);
 
   const handleVote = async () => {
     try {
@@ -28,7 +28,7 @@ const VotingPanel = () => {
       alert("Error casting vote.");
     }
   };
-  /*return (
+  return (
     <div>
       <h1>Voting Panel</h1>
       <select onChange={(e) => setSelectedCandidate(e.target.value)}>
@@ -44,12 +44,12 @@ const VotingPanel = () => {
       </select>
       <button onClick={handleVote}>Vote</button>
     </div>
-  );*/
-  return (
+  );
+  /*return (
     <div>
       <p>Voting Panel</p>
     </div>
-  );
+  );*/
 };
 
 export default VotingPanel;
