@@ -8,6 +8,52 @@ const abi = [
     type: "constructor",
   },
   {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_candidateAddress",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "_party",
+        type: "string",
+      },
+    ],
+    name: "addCandidate",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_voterAddress",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "_age",
+        type: "uint256",
+      },
+    ],
+    name: "addVoter",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "admin",
     outputs: [
@@ -78,6 +124,48 @@ const abi = [
   },
   {
     inputs: [],
+    name: "endElection",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getCandidates",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "candidateAddress",
+            type: "address",
+          },
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "party",
+            type: "string",
+          },
+          {
+            internalType: "uint256",
+            name: "voteCount",
+            type: "uint256",
+          },
+        ],
+        internalType: "struct SingleElectionVoting.Candidate[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getElectionName",
     outputs: [
       {
@@ -87,6 +175,49 @@ const abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getWinner",
+    outputs: [
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "party",
+        type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "voteCount",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "startElection",
+    outputs: [],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_candidateAddress",
+        type: "address",
+      },
+    ],
+    name: "vote",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];
@@ -145,10 +276,9 @@ export const getContractReadOnly = async () => {
 export const createElection = async (name, startDate, endDate) => {
   try {
     const contract = await getContract();
-    const provider = contract.provider; // Get the provider from the contract instance
-    const signer = await getSigner(); // Get the signer (wallet)
-    //const walletAddress = await signer.getAddress();
-    //const nonce = 2; //await provider.getTransactionCount(walletAddress);
+    const signer = await getSigner();
+    const walletAddress = await signer.getAddress();
+    const nonce = await provider.getTransactionCount(walletAddress);
 
     const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
     const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);
@@ -159,7 +289,7 @@ export const createElection = async (name, startDate, endDate) => {
       endTimestamp,
       {
         gasLimit: 1000000, // Optional: Set gas limit
-        //nonce, // Explicitly set the nonce
+        nonce, // Explicitly set the nonce
       }
     );
     console.log("Transaction sent:", tx.hash);
@@ -168,6 +298,88 @@ export const createElection = async (name, startDate, endDate) => {
   } catch (error) {
     console.error("Error creating election:", error.message || error);
     throw new Error("Failed to create election.");
+  }
+};
+
+export const startElection = async () => {
+  try {
+    const contract = await getContract(); // Get the contract instance
+
+    // Call the startElection function
+    const tx = await contract.startElection({
+      gasLimit: 1000000, // Optional: Adjust based on contract requirements
+    });
+
+    console.log("Transaction sent to start election:", tx.hash);
+
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    console.log("Election started successfully:", receipt);
+  } catch (error) {
+    console.error("Error starting election:", error.message || error);
+    throw new Error(
+      "Failed to start the election. Please check the election's start time and other conditions."
+    );
+  }
+};
+
+export const endElection = async () => {
+  try {
+    const contract = await getContract(); // Get the contract instance
+
+    // Call the endElection function
+    const tx = await contract.endElection({
+      gasLimit: 1000000, // Optional: Adjust based on contract requirements
+    });
+
+    console.log("Transaction sent to end election:", tx.hash);
+
+    // Wait for the transaction to be mined
+    const receipt = await tx.wait();
+    console.log("Election ended successfully:", receipt);
+  } catch (error) {
+    console.error("Error ending election:", error.message || error);
+    throw new Error(
+      "Failed to end the election. Please check the election's end time and other conditions."
+    );
+  }
+};
+
+export const addCandidate = async (candidateAddress, name, party) => {
+  try {
+    const contract = await getContract();
+    const signer = await getSigner();
+    const walletAddress = await signer.getAddress();
+    const nonce = await provider.getTransactionCount(walletAddress);
+    const tx = await contract.addCandidate(candidateAddress, name, party, {
+      gasLimit: 1000000,
+      nonce,
+    });
+    console.log("Transaction sent:", tx.hash);
+    await tx.wait(); // Wait for the transaction to be mined
+    console.log("Candidate added successfully!");
+  } catch (error) {
+    console.error("Error adding candidate:", error.message || error);
+    throw new Error("Failed to add candidate.");
+  }
+};
+
+export const addVoter = async (voterAddress, name, age) => {
+  try {
+    const contract = await getContract();
+    const signer = await getSigner();
+    const walletAddress = await signer.getAddress();
+    const nonce = await provider.getTransactionCount(walletAddress);
+    const tx = await contract.addVoter(voterAddress, name, age, {
+      gasLimit: 1000000,
+      nonce,
+    });
+    console.log("Transaction sent:", tx.hash);
+    await tx.wait();
+    console.log("Voter added successfully!");
+  } catch (error) {
+    console.error("Error adding voter:", error.message || error);
+    throw new Error("Failed to add voter.");
   }
 };
 

@@ -78,6 +78,85 @@ contract SingleElectionVoting {
     function getElectionName() external view returns (string memory) {
         return election.name;
     }
+
+    // Admin Function-2
+    function addCandidate(address _candidateAddress, string memory _name, string memory _party) 
+        external 
+        onlyAdmin
+        onlyBefore(election.startDate - 1 days) 
+    {
+        require(election.candidateList[_candidateAddress].candidateAddress == address(0), "Candidate already added.");
+        election.candidateList[_candidateAddress] = Candidate(_candidateAddress, _name, _party, 0);
+        election.candidateAddresses.push(_candidateAddress);
+    }
+
+    function addVoter(address _voterAddress, string memory _name, uint256 _age) 
+        external 
+        onlyAdmin 
+        onlyBefore(election.startDate) 
+    {
+        require(election.voterList[_voterAddress].voterAddress == address(0), "Voter already added.");
+        election.voterList[_voterAddress] = Voter(_voterAddress, _name, _age, false);
+    }
+
+    function startElection() external view onlyAdmin {
+        require(block.timestamp >= election.startDate, "Start time not reached.");
+        require(block.timestamp < election.endDate, "End time already passed.");
+        require(!election.finalized, "Election already finalized.");
+    }
+
+    function endElection() external onlyAdmin {
+        require(block.timestamp > election.endDate, "End time not reached.");
+        election.finalized = true;
+    }
+
+    function getWinner() external view returns (string memory name, string memory party, uint256 voteCount) {
+        require(election.candidateAddresses.length > 0, "No candidates in the election.");
+        require(election.finalized, "Election has not been finalized.");
+
+        uint256 maxVotes = 0;
+        address winnerAddress = address(0);
+        for (uint256 i = 0; i < election.candidateAddresses.length; i++) {
+            address candidateAddress = election.candidateAddresses[i];
+            Candidate storage candidate = election.candidateList[candidateAddress];
+            if (candidate.voteCount > maxVotes) {
+                maxVotes = candidate.voteCount;
+                winnerAddress = candidateAddress;
+            }
+        }
+
+        if (winnerAddress != address(0)) {
+            Candidate storage winner = election.candidateList[winnerAddress];
+            return (winner.name, winner.party, winner.voteCount);
+        } else {
+            return ("No winner", "", 0);
+        }
+    }
+
+    // Voter functions
+    function vote(address _candidateAddress) 
+        external 
+        onlyDuring(election.startDate, election.endDate) 
+    {
+        Voter storage voter = election.voterList[msg.sender];
+        require(voter.voterAddress != address(0), "You are not eligible to vote.");
+        require(!voter.hasVoted, "You have already voted.");
+        require(election.candidateList[_candidateAddress].candidateAddress != address(0), "Invalid candidate.");
+
+        voter.hasVoted = true;
+        election.candidateList[_candidateAddress].voteCount++;
+    }
+
+    function getCandidates() external view returns (Candidate[] memory) {
+        uint256 numCandidates = election.candidateAddresses.length;
+
+        Candidate[] memory candidates = new Candidate[](numCandidates);
+        for (uint256 i = 0; i < numCandidates; i++) {
+            candidates[i] = election.candidateList[election.candidateAddresses[i]];
+        }
+
+        return candidates;
+    }
 }
 
 
