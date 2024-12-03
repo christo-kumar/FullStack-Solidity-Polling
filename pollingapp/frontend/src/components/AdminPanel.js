@@ -10,10 +10,12 @@ import {
   startElection,
   endElection,
   hasElectionFinalizedFromContract,
+  getWinner,
 } from "../contract"; // Ensure these functions are imported correctly
 
 const AdminPanel = () => {
   const [electionName, setElectionName] = useState("");
+  const [winnerName, setWinnerName] = useState("");
   const [addElectionName, setAddElectionName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -60,6 +62,20 @@ const AdminPanel = () => {
       }
     };
 
+    const fetchWinner = async () => {
+      try {
+        const winner = await getWinner();
+        if (!winner || winner.name.trim() === "") {
+          //alert("Election name is empty.");
+        } else {
+          setWinnerName(winner.name);
+        }
+      } catch (error) {
+        console.error(error.message);
+        alert("Error Fetching election winner.");
+      }
+    };
+
     const fetchVoters = async () => {
       try {
         const voters = await getVoters();
@@ -99,6 +115,7 @@ const AdminPanel = () => {
     fetchVoters();
     fetchElectionState();
     fetchElectionFinalizedState();
+    fetchWinner();
   }, []); // Empty dependency array to run only once when the component mounts
 
   // Function to handle election creation
@@ -201,6 +218,7 @@ const AdminPanel = () => {
           </>
         )}
       </div>
+      <div>{winnerName ? <h3>Winner Name: {winnerName}</h3> : <></>}</div>
 
       {/* Section to manage candidates */}
       <div>
@@ -275,7 +293,11 @@ const AdminPanel = () => {
         </ul>
       </div>
       {hasElectionStarted ? (
-        <button onClick={handleEndElection}>End Election</button>
+        hasElectionFinalized ? (
+          <></>
+        ) : (
+          <button onClick={handleEndElection}>End Election</button>
+        )
       ) : hasElectionFinalized ? (
         <></>
       ) : (
