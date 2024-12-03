@@ -150,6 +150,8 @@ contract SingleElectionVoting {
         external 
     {
         Voter storage voter = election.voterList[msg.sender];
+        console.log("Voter Address:", voter.voterAddress);
+        console.log("Sender Address:", msg.sender);
         require(election.started);
         require(voter.voterAddress != address(0), "You are not eligible to vote.");
         require(!voter.hasVoted, "You have already voted.");
