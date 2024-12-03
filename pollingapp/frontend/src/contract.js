@@ -237,9 +237,22 @@ const abi = [
   },
   {
     inputs: [],
+    name: "hasElectionStarted",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "startElection",
     outputs: [],
-    stateMutability: "view",
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -338,11 +351,15 @@ export const createElection = async (name, startDate, endDate) => {
 
 export const startElection = async () => {
   try {
-    const contract = await getContract(); // Get the contract instance
+    const contract = await getContract();
+    const signer = await getSigner();
+    const walletAddress = await signer.getAddress();
+    const nonce = await provider.getTransactionCount(walletAddress);
 
     // Call the startElection function
     const tx = await contract.startElection({
       gasLimit: 1000000, // Optional: Adjust based on contract requirements
+      nonce,
     });
 
     console.log("Transaction sent to start election:", tx.hash);
@@ -452,6 +469,17 @@ export const getElectionName = async () => {
   } catch (error) {
     console.error("Error fetching election name:", error.message || error);
     throw new Error("Failed to fetch election name.");
+  }
+};
+
+export const hasElectionStartedFromContract = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const hasElectionStarted = await contract.hasElectionStarted();
+    return hasElectionStarted;
+  } catch (error) {
+    console.error("Error fetching election status:", error.message || error);
+    throw new Error("Failed to fetch election status.");
   }
 };
 

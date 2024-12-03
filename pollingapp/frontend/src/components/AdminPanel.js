@@ -6,6 +6,9 @@ import {
   getCandidates, // Assuming you have a function to get candidates
   getVoters,
   getElectionName,
+  hasElectionStartedFromContract,
+  startElection,
+  endElection,
 } from "../contract"; // Ensure these functions are imported correctly
 
 const AdminPanel = () => {
@@ -23,6 +26,7 @@ const AdminPanel = () => {
   const [voterName, setVoterName] = useState("");
   const [voterAge, setVoterAge] = useState("");
   const [voters, setVoters] = useState([]);
+  const [hasElectionStarted, setElectionStarted] = useState(false);
 
   // Fetch candidates when the component mounts
   useEffect(() => {
@@ -68,9 +72,17 @@ const AdminPanel = () => {
       }
     };
 
+    const fetchElectionState = async () => {
+      try {
+        const electionState = await hasElectionStartedFromContract();
+        setElectionStarted(electionState);
+      } catch (error) {}
+    };
+
     fetchCandidates();
     fetchElectionName();
     fetchVoters();
+    fetchElectionState();
   }, []); // Empty dependency array to run only once when the component mounts
 
   // Function to handle election creation
@@ -117,6 +129,26 @@ const AdminPanel = () => {
       setVoterAddress("");
       setVoterName("");
       setVoterAge("");
+    } catch (error) {
+      alert(`Error adding voter: ${error.message}`);
+    }
+  };
+
+  const handleEndElection = async () => {
+    try {
+      await endElection();
+      alert("Election Finalized successfully!");
+      //setFinalized
+    } catch (error) {
+      alert(`Error adding voter: ${error.message}`);
+    }
+  };
+
+  const handleStartElection = async () => {
+    try {
+      await startElection();
+      alert("Election Started successfully!");
+      setElectionStarted(true);
     } catch (error) {
       alert(`Error adding voter: ${error.message}`);
     }
@@ -224,6 +256,11 @@ const AdminPanel = () => {
           )}
         </ul>
       </div>
+      {hasElectionStarted ? (
+        <button onClick={handleEndElection}>End Election</button>
+      ) : (
+        <button onClick={handleStartElection}>Start Election</button>
+      )}
     </div>
   );
 };

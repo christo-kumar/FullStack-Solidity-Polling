@@ -74,6 +74,7 @@ contract SingleElectionVoting {
         election.startDate = _startDate;
         election.endDate = _endDate;
         election.finalized = false;
+        election.started = false;
     }
 
     function getElectionName() external view returns (string memory) {
@@ -101,15 +102,20 @@ contract SingleElectionVoting {
         election.voterAddresses.push(_voterAddress);
     }
 
-    function startElection() external view onlyAdmin {
-        require(block.timestamp >= election.startDate, "Start time not reached.");
-        require(block.timestamp < election.endDate, "End time already passed.");
-        require(!election.finalized, "Election already finalized.");
+    function startElection() external onlyAdmin {
+        //require(block.timestamp >= election.startDate, "Start time not reached.");
+        //require(block.timestamp < election.endDate, "End time already passed.");
+        //require(!election.finalized, "Election already finalized.");
+        election.started = true;
     }
 
     function endElection() external onlyAdmin {
-        require(block.timestamp > election.endDate, "End time not reached.");
+        //require(block.timestamp > election.endDate, "End time not reached.");
         election.finalized = true;
+    }
+
+    function hasElectionStarted() external view returns (bool) {
+        return election.started;
     }
 
     function getWinner() external view returns (string memory name, string memory party, uint256 voteCount) {
@@ -138,9 +144,9 @@ contract SingleElectionVoting {
     // Voter functions
     function vote(address _candidateAddress) 
         external 
-        onlyDuring(election.startDate, election.endDate) 
     {
         Voter storage voter = election.voterList[msg.sender];
+        require(election.started);
         require(voter.voterAddress != address(0), "You are not eligible to vote.");
         require(!voter.hasVoted, "You have already voted.");
         require(election.candidateList[_candidateAddress].candidateAddress != address(0), "Invalid candidate.");
@@ -170,6 +176,5 @@ contract SingleElectionVoting {
         return voters;
     }
 }
-
 
 
