@@ -9,6 +9,7 @@ import {
   hasElectionStartedFromContract,
   startElection,
   endElection,
+  hasElectionFinalizedFromContract,
 } from "../contract"; // Ensure these functions are imported correctly
 
 const AdminPanel = () => {
@@ -27,6 +28,7 @@ const AdminPanel = () => {
   const [voterAge, setVoterAge] = useState("");
   const [voters, setVoters] = useState([]);
   const [hasElectionStarted, setElectionStarted] = useState(false);
+  const [hasElectionFinalized, setHasElectionFinalized] = useState(false);
 
   // Fetch candidates when the component mounts
   useEffect(() => {
@@ -76,13 +78,27 @@ const AdminPanel = () => {
       try {
         const electionState = await hasElectionStartedFromContract();
         setElectionStarted(electionState);
-      } catch (error) {}
+      } catch (error) {
+        console.error(error.message);
+        alert("Error Fetching election start state.");
+      }
+    };
+
+    const fetchElectionFinalizedState = async () => {
+      try {
+        const electionFinalizedState = await hasElectionFinalizedFromContract();
+        setHasElectionFinalized(electionFinalizedState);
+      } catch (error) {
+        console.error(error.message);
+        alert("Error Fetching election finalized state.");
+      }
     };
 
     fetchCandidates();
     fetchElectionName();
     fetchVoters();
     fetchElectionState();
+    fetchElectionFinalizedState();
   }, []); // Empty dependency array to run only once when the component mounts
 
   // Function to handle election creation
@@ -215,7 +231,8 @@ const AdminPanel = () => {
             candidates.map((candidate, index) => (
               <li key={index}>
                 <strong>Name:</strong> {candidate.name},<strong> Party:</strong>{" "}
-                {candidate.party}
+                {candidate.party},<strong>Address:</strong>{" "}
+                {candidate.candidateAddress}
               </li>
             ))
           )}
@@ -251,6 +268,7 @@ const AdminPanel = () => {
             voters.map((voter, index) => (
               <li key={index}>
                 <strong>Name:</strong> {voter.name}
+                <strong> Address:</strong> {voter.voterAddress}
               </li>
             ))
           )}
@@ -258,6 +276,8 @@ const AdminPanel = () => {
       </div>
       {hasElectionStarted ? (
         <button onClick={handleEndElection}>End Election</button>
+      ) : hasElectionFinalized ? (
+        <></>
       ) : (
         <button onClick={handleStartElection}>Start Election</button>
       )}

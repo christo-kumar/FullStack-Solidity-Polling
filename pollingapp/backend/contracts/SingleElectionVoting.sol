@@ -118,6 +118,10 @@ contract SingleElectionVoting {
         return election.started;
     }
 
+    function hasElectionFinalized() external view returns (bool) {
+        return election.finalized;
+    }
+
     function getWinner() external view returns (string memory name, string memory party, uint256 voteCount) {
         require(election.candidateAddresses.length > 0, "No candidates in the election.");
         require(election.finalized, "Election has not been finalized.");

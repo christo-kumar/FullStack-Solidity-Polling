@@ -237,6 +237,19 @@ const abi = [
   },
   {
     inputs: [],
+    name: "hasElectionFinalized",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "hasElectionStarted",
     outputs: [
       {
@@ -483,11 +496,32 @@ export const hasElectionStartedFromContract = async () => {
   }
 };
 
+export const hasElectionFinalizedFromContract = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const hasElectionFinalized = await contract.hasElectionFinalized();
+    return hasElectionFinalized;
+  } catch (error) {
+    console.error(
+      "Error fetching election finalized status:",
+      error.message || error
+    );
+    throw new Error("Failed to fetch election finalized status.");
+  }
+};
+
 // Function to vote for a candidate
 export const voteForCandidate = async (candidateAddress) => {
   try {
     const contract = await getContract();
-    const tx = await contract.vote(candidateAddress);
+    const signer = await getSigner();
+    const walletAddress = await signer.getAddress();
+    const nonce = await provider.getTransactionCount(walletAddress);
+
+    const tx = await contract.vote(candidateAddress, {
+      gasLimit: 1000000,
+      nonce,
+    });
     console.log("Vote transaction sent:", tx.hash);
     await tx.wait();
     console.log("Vote successfully cast!");
