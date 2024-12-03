@@ -179,6 +179,41 @@ const abi = [
   },
   {
     inputs: [],
+    name: "getVoters",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "address",
+            name: "voterAddress",
+            type: "address",
+          },
+          {
+            internalType: "string",
+            name: "name",
+            type: "string",
+          },
+          {
+            internalType: "uint256",
+            name: "age",
+            type: "uint256",
+          },
+          {
+            internalType: "bool",
+            name: "hasVoted",
+            type: "bool",
+          },
+        ],
+        internalType: "struct SingleElectionVoting.Voter[]",
+        name: "",
+        type: "tuple[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getWinner",
     outputs: [
       {
@@ -393,6 +428,30 @@ export const getCandidates = async () => {
   } catch (error) {
     console.error("Error fetching candidates:", error.message || error);
     throw new Error("Failed to fetch candidates.");
+  }
+};
+
+export const getVoters = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const voters = await contract.getVoters();
+    console.log("Voters fetched:", voters);
+    return voters;
+  } catch (error) {
+    console.error("Error fetching voters: ", error.message || error);
+    throw new Error("Failed to fetch voters.");
+  }
+};
+
+export const getElectionName = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const electionName = await contract.getElectionName();
+    console.log("Election Name fetched:", electionName);
+    return electionName;
+  } catch (error) {
+    console.error("Error fetching election name:", error.message || error);
+    throw new Error("Failed to fetch election name.");
   }
 };
 

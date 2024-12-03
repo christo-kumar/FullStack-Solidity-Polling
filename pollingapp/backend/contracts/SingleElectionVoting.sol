@@ -24,6 +24,7 @@ contract SingleElectionVoting {
         uint256 startDate; // Timestamp for voting start
         uint256 endDate; // Timestamp for voting end
         address[] candidateAddresses; // List of candidate addresses
+        address[] voterAddresses;
         mapping(address => Voter) voterList; // Map voter addresses to voter data
         mapping(address => Candidate) candidateList; // Map candidate addresses to candidate data
         bool started;
@@ -97,6 +98,7 @@ contract SingleElectionVoting {
     {
         require(election.voterList[_voterAddress].voterAddress == address(0), "Voter already added.");
         election.voterList[_voterAddress] = Voter(_voterAddress, _name, _age, false);
+        election.voterAddresses.push(_voterAddress);
     }
 
     function startElection() external view onlyAdmin {
@@ -156,6 +158,16 @@ contract SingleElectionVoting {
         }
 
         return candidates;
+    }
+
+    function getVoters() external view returns (Voter[] memory) {
+        uint256 numVoters = election.voterAddresses.length;
+        
+        Voter[] memory voters = new Voter[](numVoters);
+        for(uint256 i = 0; i < numVoters; i++) {
+            voters[i] = election.voterList[election.voterAddresses[i]];
+        }
+        return voters;
     }
 }
 

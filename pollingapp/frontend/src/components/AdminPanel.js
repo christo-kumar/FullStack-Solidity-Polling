@@ -4,10 +4,13 @@ import {
   addCandidate,
   addVoter,
   getCandidates, // Assuming you have a function to get candidates
+  getVoters,
+  getElectionName,
 } from "../contract"; // Ensure these functions are imported correctly
 
 const AdminPanel = () => {
   const [electionName, setElectionName] = useState("");
+  const [addElectionName, setAddElectionName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -15,33 +18,66 @@ const AdminPanel = () => {
   const [candidateName, setCandidateName] = useState("");
   const [candidateParty, setCandidateParty] = useState("");
   const [candidates, setCandidates] = useState([]);
-  const [showCandidates, setShowCandidates] = useState(false);
 
   const [voterAddress, setVoterAddress] = useState("");
   const [voterName, setVoterName] = useState("");
   const [voterAge, setVoterAge] = useState("");
   const [voters, setVoters] = useState([]);
-  const [showVoters, setShowVoters] = useState(false);
 
   // Fetch candidates when the component mounts
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
         const candidatesList = await getCandidates();
-        setCandidates(candidatesList);
+        if (Array.isArray(candidatesList) && candidatesList.length === 0) {
+          //alert("No candidates found.");
+        } else {
+          setCandidates(candidatesList);
+        }
       } catch (error) {
         console.error(error.message);
         alert("Error fetching candidates.");
       }
     };
 
+    const fetchElectionName = async () => {
+      try {
+        const electionName = await getElectionName();
+        if (!electionName || electionName.trim() === "") {
+          //alert("Election name is empty.");
+        } else {
+          setElectionName(electionName);
+        }
+      } catch (error) {
+        console.error(error.message);
+        alert("Error Fetching election name.");
+      }
+    };
+
+    const fetchVoters = async () => {
+      try {
+        const voters = await getVoters();
+        if (Array.isArray(voters) && voters.length === 0) {
+          //alert("No candidates found.");
+        } else {
+          setVoters(voters);
+        }
+      } catch (error) {
+        console.error(error.message);
+        alert("Error Fetching voters.");
+      }
+    };
+
     fetchCandidates();
+    fetchElectionName();
+    fetchVoters();
   }, []); // Empty dependency array to run only once when the component mounts
 
   // Function to handle election creation
   const handleCreateElection = async () => {
     try {
-      await createElection(electionName, startDate, endDate);
+      await createElection(addElectionName, startDate, endDate);
+      setElectionName(addElectionName);
       alert("Election created successfully!");
     } catch (error) {
       alert(`Error creating election: ${error.message}`);
@@ -61,6 +97,9 @@ const AdminPanel = () => {
         },
       ]);
       alert("Candidate added successfully!");
+      setCandidateAddress("");
+      setCandidateName("");
+      setCandidateParty("");
     } catch (error) {
       alert(`Error adding candidate: ${error.message}`);
     }
@@ -75,6 +114,9 @@ const AdminPanel = () => {
         { address: voterAddress, name: voterName, age: voterAge },
       ]);
       alert("Voter added successfully!");
+      setVoterAddress("");
+      setVoterName("");
+      setVoterAge("");
     } catch (error) {
       alert(`Error adding voter: ${error.message}`);
     }
@@ -86,24 +128,30 @@ const AdminPanel = () => {
 
       {/* Section to create election */}
       <div>
-        <h2>Create Election</h2>
-        <input
-          type="text"
-          placeholder="Election Name"
-          value={electionName}
-          onChange={(e) => setElectionName(e.target.value)}
-        />
-        <input
-          type="datetime-local"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-        <input
-          type="datetime-local"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-        <button onClick={handleCreateElection}>Create Election</button>
+        {electionName ? (
+          <h2>Election Name: {electionName}</h2>
+        ) : (
+          <>
+            <h2>Create Election</h2>
+            <input
+              type="text"
+              placeholder="Election Name"
+              value={addElectionName}
+              onChange={(e) => setAddElectionName(e.target.value)}
+            />
+            <input
+              type="datetime-local"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <input
+              type="datetime-local"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+            <button onClick={handleCreateElection}>Create Election</button>
+          </>
+        )}
       </div>
 
       {/* Section to manage candidates */}
@@ -128,19 +176,18 @@ const AdminPanel = () => {
           onChange={(e) => setCandidateParty(e.target.value)}
         />
         <button onClick={handleAddCandidate}>Add Candidate</button>
-        <button onClick={() => setShowCandidates((prev) => !prev)}>
-          {showCandidates ? "Hide Candidates" : "Show Candidates"}
-        </button>
-        {showCandidates && (
-          <ul>
-            {candidates.map((candidate, index) => (
+        <ul>
+          {candidates.length === 0 ? (
+            <li>No candidates available.</li>
+          ) : (
+            candidates.map((candidate, index) => (
               <li key={index}>
                 <strong>Name:</strong> {candidate.name},<strong> Party:</strong>{" "}
-                {candidate.party},<strong> Address:</strong> {candidate.address}
+                {candidate.party}
               </li>
-            ))}
-          </ul>
-        )}
+            ))
+          )}
+        </ul>
       </div>
 
       {/* Section to manage voters */}
@@ -165,19 +212,17 @@ const AdminPanel = () => {
           onChange={(e) => setVoterAge(e.target.value)}
         />
         <button onClick={handleAddVoter}>Add Voter</button>
-        <button onClick={() => setShowVoters((prev) => !prev)}>
-          {showVoters ? "Hide Voters" : "Show Voters"}
-        </button>
-        {showVoters && (
-          <ul>
-            {voters.map((voter, index) => (
+        <ul>
+          {voters.length === 0 ? (
+            <li>No voters available.</li>
+          ) : (
+            voters.map((voter, index) => (
               <li key={index}>
-                <strong>Name:</strong> {voter.name},<strong> Age:</strong>{" "}
-                {voter.age},<strong> Address:</strong> {voter.address}
+                <strong>Name:</strong> {voter.name}
               </li>
-            ))}
-          </ul>
-        )}
+            ))
+          )}
+        </ul>
       </div>
     </div>
   );

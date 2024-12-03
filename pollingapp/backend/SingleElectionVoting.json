@@ -180,6 +180,41 @@
       },
       {
         "inputs": [],
+        "name": "getVoters",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "voterAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "internalType": "uint256",
+                "name": "age",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "hasVoted",
+                "type": "bool"
+              }
+            ],
+            "internalType": "struct SingleElectionVoting.Voter[]",
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
         "name": "getWinner",
         "outputs": [
           {
