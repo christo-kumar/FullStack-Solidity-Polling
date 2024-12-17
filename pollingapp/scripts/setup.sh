@@ -8,6 +8,8 @@ npm -v
 
 #4. install hardhat if not installed
 npm install --save-dev hardhat
+npm install --save-dev @nomicfoundation/hardhat-network-helpers
+
 
 #5. do npm install
 npm install
