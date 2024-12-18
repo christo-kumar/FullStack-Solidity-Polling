@@ -1,6 +1,7 @@
 const { ethers } = require("hardhat");
 const fs = require("fs/promises");
 
+//Update the script for HelloSolidity -> SingleElectionVoting
 async function main() {
   const helloContract = await ethers.deployContract("SingleElectionVoting");
 

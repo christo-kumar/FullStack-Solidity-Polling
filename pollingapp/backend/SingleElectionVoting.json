@@ -148,7 +148,7 @@
               },
               {
                 "internalType": "string",
-                "name": "party",
+                "name": "partyName",
                 "type": "string"
               },
               {
@@ -224,7 +224,7 @@
           },
           {
             "internalType": "string",
-            "name": "party",
+            "name": "partyName",
             "type": "string"
           },
           {
