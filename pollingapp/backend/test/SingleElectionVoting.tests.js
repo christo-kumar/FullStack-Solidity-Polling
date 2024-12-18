@@ -35,9 +35,10 @@ describe("SingleElectionVoting", function () {
       expect(electionName).to.equal("Test Election");
     });
 
-    /*it("should add a candidate", async function () {
-      const startTime = (await time.latest()) + 86400; // 1 day later
-      const endTime = startTime + 3600;
+    it("should add a candidate", async function () {
+      const currentTime = await time.latest();
+      const startTime = currentTime + 2 * 86400; // 2 days later
+      const endTime = startTime + 2 * 86400; // 2 days after startTime
 
       await electionContract.createElection(
         "Test Election",
@@ -53,7 +54,7 @@ describe("SingleElectionVoting", function () {
       const candidates = await electionContract.getCandidates();
       expect(candidates.length).to.equal(1);
       expect(candidates[0].name).to.equal("Candidate 1");
-    });*/
+    });
 
     it("should add a voter", async function () {
       const startTime = (await time.latest()) + 86400; // 1 day later
