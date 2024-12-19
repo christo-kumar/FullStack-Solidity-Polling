@@ -1,135 +1,154 @@
 import React, { useState, useEffect } from "react";
+//1. Import the Admin functionalities exported by contract.js
+//create election
+//get election name
+//start election
+//election started state
+//end election
+//election end state
+//election winner
+//add candidate
+//get candidate
+//add voter
+//get voters
 import {
   createElection,
-  addCandidate,
-  addVoter,
-  getCandidates, // Assuming you have a function to get candidates
-  getVoters,
   getElectionName,
-  hasElectionStartedFromContract,
   startElection,
+  hasElectionStartedFromContract,
   endElection,
   hasElectionFinalizedFromContract,
   getWinner,
-} from "../contract"; // Ensure these functions are imported correctly
+  addCandidate,
+  getCandidates,
+  addVoter,
+  getVoters,
+} from "../contract";
 
 const AdminPanel = () => {
+  //2. Create the states for following required data
+  //election name
+  //election name while adding
+  //election startDate
+  //election endData
+  //has election started
+  //has election finalized
+  //election winner
   const [electionName, setElectionName] = useState("");
-  const [winnerName, setWinnerName] = useState("");
   const [addElectionName, setAddElectionName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [hasElectionStarted, setElectionStarted] = useState(false);
+  const [hasElectionFinalized, setHasElectionFinalized] = useState(false);
+  const [winnerName, setWinnerName] = useState("");
 
+  //candidate address
+  //candidate name
+  //candidate party
+  //candidates array
   const [candidateAddress, setCandidateAddress] = useState("");
   const [candidateName, setCandidateName] = useState("");
   const [candidateParty, setCandidateParty] = useState("");
   const [candidates, setCandidates] = useState([]);
 
+  //voter address
+  //voter name
+  //voter age
+  //voters array
   const [voterAddress, setVoterAddress] = useState("");
   const [voterName, setVoterName] = useState("");
   const [voterAge, setVoterAge] = useState("");
   const [voters, setVoters] = useState([]);
-  const [hasElectionStarted, setElectionStarted] = useState(false);
-  const [hasElectionFinalized, setHasElectionFinalized] = useState(false);
 
-  // Fetch candidates when the component mounts
+  //3. Implement the useEffect hooks to load data
+  //a. fetch election name
+  //b. fetch election start status
+  //c. fetch election end status
+  //d. fetch winner
+  //e. fetch candidates
+  //f. fetch voters
+
   useEffect(() => {
-    const fetchCandidates = async () => {
-      try {
-        const candidatesList = await getCandidates();
-        if (Array.isArray(candidatesList) && candidatesList.length === 0) {
-          //alert("No candidates found.");
-        } else {
-          setCandidates(candidatesList);
-        }
-      } catch (error) {
-        console.error(error.message);
-        alert("Error fetching candidates.");
-      }
-    };
-
     const fetchElectionName = async () => {
       try {
         const electionName = await getElectionName();
         if (!electionName || electionName.trim() === "") {
-          //alert("Election name is empty.");
         } else {
           setElectionName(electionName);
         }
       } catch (error) {
         console.error(error.message);
-        alert("Error Fetching election name.");
       }
     };
-
+    const fetchElectionStartStatus = async () => {
+      try {
+        const status = await hasElectionStartedFromContract();
+        setElectionStarted(status);
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
+    const fetchElectionFinalizedStatus = async () => {
+      try {
+        const status = await hasElectionFinalizedFromContract();
+        setHasElectionFinalized(status);
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
     const fetchWinner = async () => {
       try {
         const winner = await getWinner();
         if (!winner || winner.name.trim() === "") {
-          //alert("Election name is empty.");
         } else {
           setWinnerName(winner.name);
         }
       } catch (error) {
         console.error(error.message);
-        alert("Error Fetching election winner.");
       }
     };
-
+    const fetchCandidates = async () => {
+      try {
+        const candidates = await getCandidates();
+        if (Array.isArray(candidates) && candidates.length === 0) {
+        } else {
+          setCandidates(candidates);
+        }
+      } catch (error) {
+        console.error(error.message);
+      }
+    };
     const fetchVoters = async () => {
       try {
         const voters = await getVoters();
         if (Array.isArray(voters) && voters.length === 0) {
-          //alert("No candidates found.");
         } else {
           setVoters(voters);
         }
       } catch (error) {
         console.error(error.message);
-        alert("Error Fetching voters.");
       }
     };
 
-    const fetchElectionState = async () => {
-      try {
-        const electionState = await hasElectionStartedFromContract();
-        setElectionStarted(electionState);
-      } catch (error) {
-        console.error(error.message);
-        alert("Error Fetching election start state.");
-      }
-    };
-
-    const fetchElectionFinalizedState = async () => {
-      try {
-        const electionFinalizedState = await hasElectionFinalizedFromContract();
-        setHasElectionFinalized(electionFinalizedState);
-      } catch (error) {
-        console.error(error.message);
-        alert("Error Fetching election finalized state.");
-      }
-    };
-
-    fetchCandidates();
     fetchElectionName();
-    fetchVoters();
-    fetchElectionState();
-    fetchElectionFinalizedState();
+    fetchElectionStartStatus();
+    fetchElectionFinalizedStatus();
     fetchWinner();
-  }, []); // Empty dependency array to run only once when the component mounts
+    fetchCandidates();
+    fetchVoters();
+  }, []);
 
-  // Function to handle election creation
+  //3. Implement the event handlers
+  //a. button click to create election
   const handleCreateElection = async () => {
     try {
       await createElection(addElectionName, startDate, endDate);
       setElectionName(addElectionName);
-      alert("Election created successfully!");
     } catch (error) {
       alert(`Error creating election: ${error.message}`);
     }
   };
-
-  // Function to handle adding a candidate
+  //b. button click to add the candidate
   const handleAddCandidate = async () => {
     try {
       await addCandidate(candidateAddress, candidateName, candidateParty);
@@ -141,16 +160,15 @@ const AdminPanel = () => {
           party: candidateParty,
         },
       ]);
-      alert("Candidate added successfully!");
       setCandidateAddress("");
       setCandidateName("");
       setCandidateParty("");
     } catch (error) {
-      alert(`Error adding candidate: ${error.message}`);
+      alert(`Error creating election: ${error.message}`);
     }
   };
 
-  // Function to handle adding a voter
+  //c. button click to add the voter
   const handleAddVoter = async () => {
     try {
       await addVoter(voterAddress, voterName, voterAge);
@@ -166,17 +184,7 @@ const AdminPanel = () => {
       alert(`Error adding voter: ${error.message}`);
     }
   };
-
-  const handleEndElection = async () => {
-    try {
-      await endElection();
-      alert("Election Finalized successfully!");
-      //setFinalized
-    } catch (error) {
-      alert(`Error adding voter: ${error.message}`);
-    }
-  };
-
+  //d. button click to start the election
   const handleStartElection = async () => {
     try {
       await startElection();
@@ -187,10 +195,21 @@ const AdminPanel = () => {
     }
   };
 
+  //e. button click to end the election
+  const handleEndElection = async () => {
+    try {
+      await endElection();
+      alert("Election Finalized successfully!");
+      //setFinalized
+    } catch (error) {
+      alert(`Error adding voter: ${error.message}`);
+    }
+  };
+
+  //4. Create the UI
   return (
     <div>
       <h1>Admin Panel</h1>
-
       {/* Section to create election */}
       <div>
         {electionName ? (
@@ -219,7 +238,6 @@ const AdminPanel = () => {
         )}
       </div>
       <div>{winnerName ? <h3>Winner Name: {winnerName}</h3> : <></>}</div>
-
       {/* Section to manage candidates */}
       <div>
         <h2>Manage Candidates</h2>
@@ -256,7 +274,6 @@ const AdminPanel = () => {
           )}
         </ul>
       </div>
-
       {/* Section to manage voters */}
       <div>
         <h2>Manage Voters</h2>
@@ -292,17 +309,20 @@ const AdminPanel = () => {
           )}
         </ul>
       </div>
-      {hasElectionStarted ? (
-        hasElectionFinalized ? (
+      {/* Section to manage start and end of election */}
+      <div>
+        {hasElectionStarted ? (
+          hasElectionFinalized ? (
+            <></>
+          ) : (
+            <button onClick={handleEndElection}>End Election</button>
+          )
+        ) : hasElectionFinalized ? (
           <></>
         ) : (
-          <button onClick={handleEndElection}>End Election</button>
-        )
-      ) : hasElectionFinalized ? (
-        <></>
-      ) : (
-        <button onClick={handleStartElection}>Start Election</button>
-      )}
+          <button onClick={handleStartElection}>Start Election</button>
+        )}
+      </div>
     </div>
   );
 };
