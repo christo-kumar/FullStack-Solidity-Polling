@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from "react";
+//1. Import exported functionality from contract.js for voting
+//a. get candidates
+//b. vote for candidate
 import { getCandidates, voteForCandidate } from "../contract";
 
 const VotingPanel = () => {
+  //2. add states for components
+  //candidates
+  //selected candidate
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState("");
 
+  //3. Implement the use effect
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
@@ -19,6 +26,7 @@ const VotingPanel = () => {
     fetchCandidates();
   }, []);
 
+  //4. Implement Vote Btn Click
   const handleVote = async () => {
     try {
       await voteForCandidate(selectedCandidate);
@@ -28,6 +36,8 @@ const VotingPanel = () => {
       alert("Error casting vote.");
     }
   };
+
+  //5. Implement the UI
   return (
     <div>
       <h1>Voting Panel</h1>
@@ -45,11 +55,6 @@ const VotingPanel = () => {
       <button onClick={handleVote}>Vote</button>
     </div>
   );
-  /*return (
-    <div>
-      <p>Voting Panel</p>
-    </div>
-  );*/
 };
 
 export default VotingPanel;
