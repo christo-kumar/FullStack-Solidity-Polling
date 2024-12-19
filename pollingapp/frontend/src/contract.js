@@ -1,6 +1,11 @@
 import { ethers } from "ethers";
 
+//******** P-1 SETUP CODE: INTEGRATE UI WITH SMART-CONTRACT ***************************/
+
+//1. Address of deployed contract
 const address = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+
+//2. ABI of compiled contract
 const abi = [
   {
     inputs: [],
@@ -147,7 +152,7 @@ const abi = [
           },
           {
             internalType: "string",
-            name: "party",
+            name: "partyName",
             type: "string",
           },
           {
@@ -223,7 +228,7 @@ const abi = [
       },
       {
         internalType: "string",
-        name: "party",
+        name: "partyName",
         type: "string",
       },
       {
@@ -283,24 +288,15 @@ const abi = [
   },
 ];
 
+//3. Create provider
 const provider = new ethers.BrowserProvider(window.ethereum);
 
-// Function to connect to MetaMask
-export const connectMetaMask = async () => {
-  try {
-    await provider.send("eth_requestAccounts", []);
-    console.log("MetaMask connected successfully.");
-  } catch (error) {
-    console.error("Error connecting to MetaMask:", error);
-    throw new Error("Failed to connect to MetaMask. Please try again.");
-  }
-};
+//******** P-2 SETUP CODE: Get Singer & Contract ***************************/
 
-// Function to get the signer asynchronously
+//4. Get the signer
 export const getSigner = async () => {
   try {
     const signer = await provider.getSigner();
-    console.log("*** Signer fetched successfully: ***", signer);
     return signer;
   } catch (error) {
     console.error("Error fetching signer:", error);
@@ -310,7 +306,7 @@ export const getSigner = async () => {
   }
 };
 
-// Function to get the contract instance
+//5. Get the contract r/w
 export const getContract = async () => {
   try {
     const signer = await getSigner();
@@ -322,7 +318,7 @@ export const getContract = async () => {
   }
 };
 
-// Function to get contract instance for reading
+//6. Get the contract read only
 export const getContractReadOnly = async () => {
   try {
     const contract = new ethers.Contract(address, abi, provider);
@@ -333,35 +329,44 @@ export const getContractReadOnly = async () => {
   }
 };
 
-// Function to create an election
+//******** P-2 ELECTION: INTEGRATE ELECTION WITH UI ***************************/
+
+//7. Function to create an election with gasLimit: 1000000,
 export const createElection = async (name, startDate, endDate) => {
   try {
     const contract = await getContract();
+    const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
+    const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);
+    const gasLimit = 1000000;
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
     const nonce = await provider.getTransactionCount(walletAddress);
-
-    const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
-    const endTimestamp = Math.floor(new Date(endDate).getTime() / 1000);
-
     const tx = await contract.createElection(
       name,
       startTimestamp,
       endTimestamp,
-      {
-        gasLimit: 1000000, // Optional: Set gas limit
-        nonce, // Explicitly set the nonce
-      }
+      { gasLimit, nonce }
     );
-    console.log("Transaction sent:", tx.hash);
     await tx.wait();
-    console.log("Election created successfully!");
   } catch (error) {
     console.error("Error creating election:", error.message || error);
     throw new Error("Failed to create election.");
   }
 };
 
+//8. Function to get election name
+export const getElectionName = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const electionName = await contract.getElectionName();
+    console.log("Election Name fetched:", electionName);
+    return electionName;
+  } catch (error) {
+    console.error("Error fetching election name:", error.message || error);
+    throw new Error("Failed to fetch election name.");
+  }
+};
+//9. Function to start to election
 export const startElection = async () => {
   try {
     const contract = await getContract();
@@ -387,7 +392,18 @@ export const startElection = async () => {
     );
   }
 };
-
+//10. Function to check whether election has started
+export const hasElectionStartedFromContract = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const hasElectionStarted = await contract.hasElectionStarted();
+    return hasElectionStarted;
+  } catch (error) {
+    console.error("Error fetching election status:", error.message || error);
+    throw new Error("Failed to fetch election status.");
+  }
+};
+//11. Function to end the election
 export const endElection = async () => {
   try {
     const contract = await getContract(); // Get the contract instance
@@ -409,26 +425,76 @@ export const endElection = async () => {
     );
   }
 };
+//12. Function to check whether election has finalized
+export const hasElectionFinalizedFromContract = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const hasElectionFinalized = await contract.hasElectionFinalized();
+    return hasElectionFinalized;
+  } catch (error) {
+    console.error(
+      "Error fetching election finalized status:",
+      error.message || error
+    );
+    throw new Error("Failed to fetch election finalized status.");
+  }
+};
+//13. Function to get the winner
+export const getWinner = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const winner = await contract.getWinner();
+    console.log("Election winner:", winner);
+    return winner;
+  } catch (error) {
+    console.error("Error fetching winner:", error.message || error);
+    throw new Error("Failed to fetch winner.");
+  }
+};
 
-export const addCandidate = async (candidateAddress, name, party) => {
+//******** P-3 CANDIDATES: INTEGRATE CANDIDATES WITH UI ***************************/
+//14. Function to add candidate
+export const addCandidate = async (
+  candidateAddress,
+  candidateName,
+  partyName
+) => {
   try {
     const contract = await getContract();
+    const gasLimit = 1000000;
     const signer = await getSigner();
     const walletAddress = await signer.getAddress();
     const nonce = await provider.getTransactionCount(walletAddress);
-    const tx = await contract.addCandidate(candidateAddress, name, party, {
-      gasLimit: 1000000,
-      nonce,
-    });
-    console.log("Transaction sent:", tx.hash);
-    await tx.wait(); // Wait for the transaction to be mined
-    console.log("Candidate added successfully!");
+    const tx = await contract.addCandidate(
+      candidateAddress,
+      candidateName,
+      partyName,
+      {
+        gasLimit,
+        nonce,
+      }
+    );
+    await tx.wait();
   } catch (error) {
     console.error("Error adding candidate:", error.message || error);
     throw new Error("Failed to add candidate.");
   }
 };
 
+//15. Function to get candidates
+export const getCandidates = async () => {
+  try {
+    const contract = await getContractReadOnly();
+    const candidates = await contract.getCandidates();
+    return candidates;
+  } catch (error) {
+    console.error("Error fetching candidates:", error.message || error);
+    throw new Error("Failed to fetch candidates.");
+  }
+};
+
+//******** P-4 VOTERS: INTEGRATE VOTERS WITH UI ***************************/
+//16. Function to add voter
 export const addVoter = async (voterAddress, name, age) => {
   try {
     const contract = await getContract();
@@ -447,20 +513,7 @@ export const addVoter = async (voterAddress, name, age) => {
     throw new Error("Failed to add voter.");
   }
 };
-
-// Function to fetch candidates
-export const getCandidates = async () => {
-  try {
-    const contract = await getContractReadOnly();
-    const candidates = await contract.getCandidates();
-    console.log("Candidates fetched:", candidates);
-    return candidates;
-  } catch (error) {
-    console.error("Error fetching candidates:", error.message || error);
-    throw new Error("Failed to fetch candidates.");
-  }
-};
-
+//17. Function to get voters
 export const getVoters = async () => {
   try {
     const contract = await getContractReadOnly();
@@ -472,45 +525,7 @@ export const getVoters = async () => {
     throw new Error("Failed to fetch voters.");
   }
 };
-
-export const getElectionName = async () => {
-  try {
-    const contract = await getContractReadOnly();
-    const electionName = await contract.getElectionName();
-    console.log("Election Name fetched:", electionName);
-    return electionName;
-  } catch (error) {
-    console.error("Error fetching election name:", error.message || error);
-    throw new Error("Failed to fetch election name.");
-  }
-};
-
-export const hasElectionStartedFromContract = async () => {
-  try {
-    const contract = await getContractReadOnly();
-    const hasElectionStarted = await contract.hasElectionStarted();
-    return hasElectionStarted;
-  } catch (error) {
-    console.error("Error fetching election status:", error.message || error);
-    throw new Error("Failed to fetch election status.");
-  }
-};
-
-export const hasElectionFinalizedFromContract = async () => {
-  try {
-    const contract = await getContractReadOnly();
-    const hasElectionFinalized = await contract.hasElectionFinalized();
-    return hasElectionFinalized;
-  } catch (error) {
-    console.error(
-      "Error fetching election finalized status:",
-      error.message || error
-    );
-    throw new Error("Failed to fetch election finalized status.");
-  }
-};
-
-// Function to vote for a candidate
+//18. Function to vote for candidate
 export const voteForCandidate = async (candidateAddress) => {
   try {
     const contract = await getContract();
@@ -528,18 +543,5 @@ export const voteForCandidate = async (candidateAddress) => {
   } catch (error) {
     console.error("Error voting:", error.message || error);
     throw new Error("Failed to cast vote.");
-  }
-};
-
-// Function to fetch the winner
-export const getWinner = async () => {
-  try {
-    const contract = await getContractReadOnly();
-    const winner = await contract.getWinner();
-    console.log("Election winner:", winner);
-    return winner;
-  } catch (error) {
-    console.error("Error fetching winner:", error.message || error);
-    throw new Error("Failed to fetch winner.");
   }
 };
